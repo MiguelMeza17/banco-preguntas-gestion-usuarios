@@ -60,29 +60,18 @@ Este proyecto necesita una base de datos PostgreSQL corriendo en Docker. Sigue e
 
 **Nota:** los pasos 1-5 solo se hacen una vez. Si reinicias el PC, basta con abrir una terminal y ejecutar cualquier comando `docker ...` — Windows arranca WSL automáticamente y el servicio Docker ya quedó configurado para iniciar solo (paso 3).
 
-## 3. Levantar la base de datos
-
-Con Docker instalado:
-
-1. Abre la terminal integrada de VS Code  `Ctrl` + ( ` ) o `Ctrl` + ( ñ ).
-2. En esa terminal, levanta el contenedor de PostgreSQL definido en `docker-compose.yml`:
-   ```powershell
-   docker compose up -d
-   ```
-
-## 4. Ejecutar la aplicación
-
- Antes ejecuta:
-
-```powershell
-docker compose ps
-```
-Debe mostrarte banco-preguntas-gestion-usuario.db
+## 3. Ejecutar la aplicación
 
 **Importante:** el punto de entrada que debes ejecutar es **`Launcher.java`**, no `MainApp.java`.
 
+`Launcher` levanta solo el contenedor de PostgreSQL (`docker compose up -d --wait`, definido en `docker-compose.yml`) y espera a que esté sano antes de abrir la ventana — no hace falta correr `docker compose up -d` a mano ni antes ni después de cada `▶ Run`, incluso si cerraste la app, dormiste o reiniciaste el PC.
+
 Pasos:
 
-1. Asegúrate de que la base de datos esté corriendo (paso 3).
-2. Abre `src/main/java/bancopreguntas/view/Launcher.java`.
-3. Haz clic en **▶ Run**.
+1. Abre `src/main/java/bancopreguntas/view/Launcher.java`.
+2. Haz clic en **▶ Run**.
+
+Si algo falla al levantar la base de datos, verás un mensaje claro (no un stack trace) indicando que revises Docker/WSL. Para revisar el estado del contenedor a mano en cualquier momento:
+```powershell
+docker compose ps
+```

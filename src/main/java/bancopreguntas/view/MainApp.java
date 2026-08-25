@@ -8,6 +8,8 @@ import bancopreguntas.controller.AuthController;
 import bancopreguntas.controller.UsuarioController;
 import bancopreguntas.controller.validation.PasswordValidator;
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 
 /**
@@ -21,7 +23,13 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        IUsuarioRepository repository = Factory.getInstance().getUsuarioRepository("default");
+        IUsuarioRepository repository;
+        try {
+            repository = Factory.getInstance().getUsuarioRepository("default");
+        } catch (IllegalStateException ex) {
+            mostrarErrorConexion();
+            return;
+        }
         IPasswordEncoder passwordEncoder = new Sha256PasswordEncoder();
         PasswordValidator passwordValidator = PasswordValidator.reglasPorDefecto();
 
@@ -37,5 +45,14 @@ public class MainApp extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private void mostrarErrorConexion() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("No se pudo conectar a la base de datos");
+        alert.setHeaderText("PostgreSQL no está disponible en localhost:5432");
+        alert.setContentText("Verifica que Docker/WSL estén corriendo (ver SETUP.md) y vuelve a intentar.");
+        alert.showAndWait();
+        Platform.exit();
     }
 }
