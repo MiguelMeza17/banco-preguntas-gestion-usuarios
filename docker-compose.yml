@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: banco-preguntas-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: banco_preguntas
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - banco-preguntas-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d banco_preguntas"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  banco-preguntas-db-data:

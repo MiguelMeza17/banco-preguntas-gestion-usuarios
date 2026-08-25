@@ -8,7 +8,7 @@
   - `Maven for Java` (`vscjava.vscode-maven`)
   - `Debugger for Java` (`vscjava.vscode-java-debug`)
 - **Conexión a internet** la primera vez que abras el proyecto: Maven necesita descargar las dependencias (JavaFX, driver de PostgreSQL, JUnit, Postgres embebido para pruebas). No hace falta tener Maven instalado aparte — la extensión de VS Code trae uno embebido si no encuentra uno en el sistema.
-- **PostgreSQL instalado y corriendo localmente**, solo para *ejecutar la aplicación* (las pruebas unitarias NO lo necesitan, ver sección 5). Instálalo desde https://www.postgresql.org/download/ (en Windows, el instalador oficial trae pgAdmin incluido). Durante la instalación te pedirá una contraseña para el usuario `postgres` — anótala.
+- **Docker**, solo para *ejecutar la aplicación* (las pruebas unitarias NO lo necesitan, ver sección 5) — se usa para levantar PostgreSQL sin instalarlo nativo. Ver [ADR 0006](docs/adr/0006-docker-compose-para-postgresql.md) y la sección 3 para instalarlo.
 
 No necesitas IntelliJ ni NetBeans: el proyecto es un `pom.xml` estándar, cualquier IDE con soporte Maven lo reconoce igual.
 
@@ -17,25 +17,80 @@ No necesitas IntelliJ ni NetBeans: el proyecto es un `pom.xml` estándar, cualqu
 1. `Archivo` → `Abrir carpeta...` → selecciona `banco-preguntas-gestion-usuarios/` (la carpeta que tiene el `pom.xml`, no una carpeta superior).
 2. Espera a que la barra de estado inferior termine de decir "Java: Loading..." / "Importing Maven projects" (la primera vez descarga las dependencias, puede tardar 1-2 minutos).
 
-## 3. Crear la base de datos
+## 3. Instalar Docker y levantar la base de datos
+
+### 3.1. Instalar Docker (una sola vez)
+
+Elige una opción según lo que prefieras tener instalado:
+
+**Opción A — Docker Desktop (más simple, recomendado si no usas Docker para nada más):**
+
+1. Descarga e instala desde https://www.docker.com/products/docker-desktop/ (en Windows requiere WSL2;
+   el instalador lo configura solo si no lo tienes).
+2. Ábrelo una vez para que arranque el motor. Con eso `docker` y `docker compose` ya funcionan desde
+   cualquier terminal de Windows.
+
+**Opción B — Docker Engine headless en WSL2 (sin la app gráfica), la que usa este equipo:**
+
+1. Asegúrate de tener una distro WSL2 (ej. `Ubuntu`): `wsl --install -d Ubuntu` si no la tienes.
+2. Instala el motor dentro de la distro:
+   ```bash
+   wsl -d Ubuntu -- sudo apt-get update
+   wsl -d Ubuntu -- sudo apt-get install -y docker.io
+   wsl -d Ubuntu -- sudo systemctl enable --now docker
+   ```
+3. Instala el plugin de `docker compose` (no viene incluido con `docker.io`):
+   ```bash
+   wsl -d Ubuntu -- sudo mkdir -p /usr/local/lib/docker/cli-plugins
+   wsl -d Ubuntu -- sudo curl -fsSL -o /usr/local/lib/docker/cli-plugins/docker-compose https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64
+   wsl -d Ubuntu -- sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+   ```
+4. Para poder escribir `docker ...` directo en PowerShell (sin anteponer `wsl -d Ubuntu --` cada vez),
+   agrega esta función a tu perfil de PowerShell (`$PROFILE`):
+   ```powershell
+   function docker { wsl -d Ubuntu -- docker $args }
+   ```
+5. Verifica: `docker version` y `docker compose version` deberían responder sin error.
+
+⚠️ **Sin Docker Desktop, WSL2 apaga la distro por inactividad y se lleva el contenedor con ella** (se
+observó reiniciándose solo cada ~15-20 s). `vmIdleTimeout=-1` en `%USERPROFILE%\.wslconfig` ayuda pero
+no lo elimina del todo. La forma confiable de evitarlo es mantener un proceso corriendo dentro de la
+distro mientras trabajas en la app:
+```powershell
+Start-Process wsl -ArgumentList '-d','Ubuntu','--','sleep','infinity' -WindowStyle Hidden
+```
+Corre esto una vez por sesión de Windows (antes de `docker compose up -d` o después, da igual) — sin
+esto, la conexión desde `Launcher` puede fallar con `Connection refused` de forma intermitente. Con la
+**Opción A (Docker Desktop)** no aplica: la propia app mantiene su VM viva mientras esté abierta.
+
+Con cualquiera de las dos opciones, WSL2 reenvía el puerto publicado por el contenedor a
+`localhost` en Windows automáticamente — no hace falta configuración extra de red.
+
+### 3.2. Levantar la base de datos
 
 La app se conecta por defecto a `jdbc:postgresql://localhost:5432/banco_preguntas` con usuario
 `postgres` (ver constantes al inicio de `src/main/java/bancopreguntas/conexion/UsuarioRepository.java`
-si necesitas cambiarlas). Antes de correr la app, crea esa base una sola vez, desde **pgAdmin** (se
-instala junto con PostgreSQL):
+si necesitas cambiarlas). El `docker-compose.yml` de la raíz del repo levanta exactamente eso, con la
+base ya creada — ver [ADR 0006](docs/adr/0006-docker-compose-para-postgresql.md).
 
-1. Abre pgAdmin → expande **Servers** → tu servidor de PostgreSQL (te pedirá la contraseña que
-   pusiste durante la instalación).
-2. Clic derecho en **Databases** → **Create** → **Database...**
-3. En el campo "Database" escribe `banco_preguntas` → **Save**.
+```bash
+docker compose up -d
+```
 
-Si prefieres terminal (`psql` no siempre queda en el PATH en Windows por defecto):
+Con eso ya queda PostgreSQL escuchando en `localhost:5432` y la base `banco_preguntas` creada — no hace
+falta pgAdmin ni `psql` a mano. Para detenerlo: `docker compose down` (agrega `-v` si además quieres
+borrar los datos guardados).
+
+La tabla `Usuario` se crea sola la primera vez que la app se conecta (`CREATE TABLE IF NOT EXISTS`).
+
+### Alternativa sin Docker
+
+Si prefieres instalar PostgreSQL nativo, descárgalo de https://www.postgresql.org/download/ y crea la
+base manualmente:
 
 ```bash
 psql -U postgres -c "CREATE DATABASE banco_preguntas;"
 ```
-
-La tabla `Usuario` se crea sola la primera vez que la app se conecta (`CREATE TABLE IF NOT EXISTS`).
 
 ## 4. Ejecutar la aplicación
 
