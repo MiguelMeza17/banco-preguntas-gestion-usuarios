@@ -90,6 +90,18 @@ El porqué de cada elección tecnológica (Java+JavaFX, PostgreSQL en vez de SQL
 por capas, Maven, pruebas con PostgreSQL embebido) está documentado en **[docs/adr/](docs/adr/)** —
 útil para responder preguntas del docente en la sustentación.
 
+## Reglas de negocio
+
+Qué debe hacer exactamente cada `// TODO` (registro, política de contraseñas, autenticación,
+cifrado, cambio de estado) está detallado en **[docs/REGLAS_NEGOCIO.md](docs/REGLAS_NEGOCIO.md)** —
+léanlo antes de repartirse los TODO para que ambos implementen el mismo comportamiento.
+
+## Épicas e historias de usuario
+
+Las épicas e historias de usuario específicas del módulo de Gestión de usuarios (registro, login,
+listado, activar/desactivar), con sus criterios de aceptación, están en
+**[docs/EPICAS_HISTORIAS_USUARIO.md](docs/EPICAS_HISTORIAS_USUARIO.md)**.
+
 ## Flujo de trabajo en equipo (Git)
 
 Antes de ponerse a picar código, lean **[RAMAS.md](RAMAS.md)** — explica cómo usar ramas para que
