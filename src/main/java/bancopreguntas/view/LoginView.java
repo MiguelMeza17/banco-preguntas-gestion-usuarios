@@ -2,6 +2,8 @@ package bancopreguntas.view;
 
 import bancopreguntas.controller.AuthController;
 import bancopreguntas.controller.UsuarioController;
+import bancopreguntas.model.Usuario;
+import bancopreguntas.model.exception.CredencialesInvalidasException;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -14,10 +16,9 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 /**
- * Pantalla de login. Ya recibe las dependencias que necesita (AuthController,
- * UsuarioController) por constructor, pero los botones todavía no llaman
- * nada — es solo la parte visual; falta conectar los manejadores de
- * eventos con AuthController.autenticar(...) y navegar según el resultado.
+ * Pantalla de login. Delega la autenticación en {@link AuthController} y
+ * navega a {@link DashboardView} si las credenciales son válidas, o a
+ * {@link RegistroUsuarioView} desde el enlace de registro.
  */
 public class LoginView {
 
@@ -42,14 +43,27 @@ public class LoginView {
         campoPassword.setPromptText("Contraseña");
 
         Label labelError = new Label();
+        labelError.setStyle("-fx-text-fill: red;");
+        labelError.setWrapText(true);
 
         Button botonIngresar = new Button("Ingresar");
         Hyperlink linkRegistro = new Hyperlink("¿No tienes cuenta? Regístrate");
 
-        // TODO: botonIngresar.setOnAction -> llamar authService.autenticar(login, password)
-        //       y navegar a DashboardView si es correcto, o mostrar el error en labelError.
+        botonIngresar.setOnAction(evento -> {
+            try {
+                Usuario usuario = authService.autenticar(campoLogin.getText(), campoPassword.getText());
+                labelError.setText("");
+                DashboardView dashboardView = new DashboardView(stage, usuario, authService, usuarioService);
+                stage.setScene(dashboardView.getScene());
+            } catch (CredencialesInvalidasException ex) {
+                labelError.setText(ex.getMessage());
+            }
+        });
 
-        // TODO: linkRegistro.setOnAction -> navegar a RegistroUsuarioView.
+        linkRegistro.setOnAction(evento -> {
+            RegistroUsuarioView registroView = new RegistroUsuarioView(stage, authService, usuarioService);
+            stage.setScene(registroView.getScene());
+        });
 
         VBox contenedor = new VBox(12, titulo, campoLogin, campoPassword, botonIngresar, labelError, linkRegistro);
         contenedor.setPadding(new Insets(24));

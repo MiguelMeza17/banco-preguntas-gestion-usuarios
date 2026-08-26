@@ -8,8 +8,7 @@ public class LongitudMinimaRule implements IPasswordRule {
 
     @Override
     public boolean esValida(String password) {
-        // TODO: validar longitud mínima (LONGITUD_MINIMA).
-        return false;
+        return password != null && password.length() >= LONGITUD_MINIMA;
     }
 
     @Override

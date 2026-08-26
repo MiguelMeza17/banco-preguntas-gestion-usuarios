@@ -6,8 +6,10 @@ public class MayusculaRule implements IPasswordRule {
 
     @Override
     public boolean esValida(String password) {
-        // TODO: validar que contenga al menos una letra mayúscula.
-        return false;
+        if (password == null) {
+            return false;
+        }
+        return password.chars().anyMatch(Character::isUpperCase);
     }
 
     @Override

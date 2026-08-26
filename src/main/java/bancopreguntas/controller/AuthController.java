@@ -1,5 +1,6 @@
 package bancopreguntas.controller;
 
+import bancopreguntas.model.EstadoUsuario;
 import bancopreguntas.model.Usuario;
 import bancopreguntas.conexion.IUsuarioRepository;
 import bancopreguntas.model.exception.CredencialesInvalidasException;
@@ -8,8 +9,7 @@ import bancopreguntas.controller.security.IPasswordEncoder;
 /**
  * Valida credenciales de inicio de sesión. Al igual que
  * {@link UsuarioController}, depende de abstracciones, no de implementaciones
- * concretas (DIP). La conexión ya está armada; falta implementar la
- * verificación dentro de {@code autenticar}.
+ * concretas (DIP).
  */
 public class AuthController {
 
@@ -22,10 +22,13 @@ public class AuthController {
     }
 
     public Usuario autenticar(String login, String passwordPlano) throws CredencialesInvalidasException {
-        // TODO: 1) buscar el usuario por login (repository.findByLogin)
-        //       2) verificar la password con passwordEncoder.matches
-        //       3) verificar que el usuario esté ACTIVO
-        //       4) si algo falla, lanzar CredencialesInvalidasException
-        return null;
+        Usuario usuario = repository.findByLogin(login);
+        if (usuario == null || !passwordEncoder.matches(passwordPlano, usuario.getPasswordHash())) {
+            throw new CredencialesInvalidasException("Login o contraseña incorrectos.");
+        }
+        if (usuario.getEstado() != EstadoUsuario.ACTIVO) {
+            throw new CredencialesInvalidasException("Login o contraseña incorrectos.");
+        }
+        return usuario;
     }
 }

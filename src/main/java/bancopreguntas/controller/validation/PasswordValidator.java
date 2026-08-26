@@ -34,12 +34,16 @@ public class PasswordValidator {
     }
 
     public boolean esValida(String password) {
-        // TODO: implementar (típicamente: obtenerErrores(password).isEmpty()).
-        return false;
+        return obtenerErrores(password).isEmpty();
     }
 
     public List<String> obtenerErrores(String password) {
-        // TODO: recorrer "reglas" y acumular los mensajes de error de las que fallen.
-        return new ArrayList<>();
+        List<String> errores = new ArrayList<>();
+        for (IPasswordRule regla : reglas) {
+            if (!regla.esValida(password)) {
+                errores.add(regla.getMensajeError());
+            }
+        }
+        return errores;
     }
 }

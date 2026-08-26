@@ -12,9 +12,8 @@ import java.util.List;
 
 /**
  * Lógica de negocio de gestión de usuarios. Depende solo de abstracciones
- * (IUsuarioRepository, IPasswordEncoder) inyectadas por constructor (DIP).
- * La conexión con el repositorio y las demás dependencias ya está armada;
- * falta implementar las reglas de negocio dentro de cada método.
+ * (IUsuarioRepository, IPasswordEncoder, PasswordValidator) inyectadas por
+ * constructor (DIP).
  */
 public class UsuarioController {
 
@@ -31,11 +30,21 @@ public class UsuarioController {
 
     public Usuario registrarUsuario(String login, String nombreCompleto, Rol rol, String passwordPlano)
             throws PasswordInvalidaException, UsuarioYaExisteException {
-        // TODO: 1) validar la password con passwordValidator
-        //       2) verificar que el login no exista (repository.existsByLogin)
-        //       3) cifrar la password con passwordEncoder
-        //       4) construir el Usuario (estado ACTIVO) y guardarlo con repository.save
-        return null;
+        List<String> errores = passwordValidator.obtenerErrores(passwordPlano);
+        if (!errores.isEmpty()) {
+            throw new PasswordInvalidaException(errores);
+        }
+
+        if (repository.existsByLogin(login)) {
+            throw new UsuarioYaExisteException(login);
+        }
+
+        String passwordHash = passwordEncoder.encode(passwordPlano);
+        Usuario usuario = new Usuario(0, login, nombreCompleto, rol, EstadoUsuario.ACTIVO, passwordHash);
+        if (!repository.save(usuario)) {
+            throw new IllegalStateException("No fue posible guardar el usuario en la base de datos.");
+        }
+        return usuario;
     }
 
     public List<Usuario> listarUsuarios() {

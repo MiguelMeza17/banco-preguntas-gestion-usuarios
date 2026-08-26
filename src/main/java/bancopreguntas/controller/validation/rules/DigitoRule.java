@@ -6,8 +6,10 @@ public class DigitoRule implements IPasswordRule {
 
     @Override
     public boolean esValida(String password) {
-        // TODO: validar que contenga al menos un dígito.
-        return false;
+        if (password == null) {
+            return false;
+        }
+        return password.chars().anyMatch(Character::isDigit);
     }
 
     @Override
