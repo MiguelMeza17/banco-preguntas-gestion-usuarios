@@ -15,39 +15,33 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Implementación concreta de {@link IUsuarioRepository} sobre PostgreSQL.
- * Podría reemplazarse por otra tecnología sin afectar a quien consume
- * la interfaz (DIP).
+ * Acceso a datos de Usuario sobre SQLite.
  */
-public class UsuarioRepository implements IUsuarioRepository {
+public class UsuarioRepository {
 
-    private static final String URL_POR_DEFECTO = "jdbc:postgresql://localhost:5432/banco_preguntas";
-    private static final String USUARIO_POR_DEFECTO = "postgres";
-    private static final String PASSWORD_POR_DEFECTO = "postgres";
+    private static final String URL_POR_DEFECTO = "jdbc:sqlite:banco_preguntas.db";
 
     private final Connection conn;
 
-    /** Constructor de producción: se conecta a la instancia local configurada arriba. */
+    /** Abre (o crea) el archivo banco_preguntas.db en el directorio de trabajo. */
     public UsuarioRepository() {
-        this(conectar(URL_POR_DEFECTO, USUARIO_POR_DEFECTO, PASSWORD_POR_DEFECTO));
+        this(conectar(URL_POR_DEFECTO));
     }
 
-    /** Constructor para pruebas: reutiliza una conexión ya abierta (p. ej. Postgres embebido). */
+    /** Para pruebas: reutiliza una conexión ya abierta (p. ej. SQLite en memoria). */
     public UsuarioRepository(Connection conn) {
         this.conn = conn;
         initDatabase();
     }
 
-    private static Connection conectar(String url, String usuario, String password) {
+    private static Connection conectar(String url) {
         try {
-            return DriverManager.getConnection(url, usuario, password);
+            return DriverManager.getConnection(url);
         } catch (SQLException ex) {
-            throw new IllegalStateException("No fue posible conectar a PostgreSQL en " + url
-                    + ". Verifica que el servidor esté corriendo y las credenciales en UsuarioRepository.", ex);
+            throw new IllegalStateException("No fue posible abrir la base de datos SQLite en " + url + ".", ex);
         }
     }
 
-    @Override
     public boolean save(Usuario usuario) {
         if (usuario == null || usuario.getLogin() == null || usuario.getLogin().isBlank()) {
             return false;
@@ -70,7 +64,6 @@ public class UsuarioRepository implements IUsuarioRepository {
         return false;
     }
 
-    @Override
     public Usuario findByLogin(String login) {
         String sql = "SELECT Id, Login, NombreCompleto, Rol, Estado, PasswordHash "
                 + "FROM Usuario WHERE Login = ?";
@@ -88,12 +81,10 @@ public class UsuarioRepository implements IUsuarioRepository {
         return null;
     }
 
-    @Override
     public boolean existsByLogin(String login) {
         return findByLogin(login) != null;
     }
 
-    @Override
     public boolean updateEstado(String login, EstadoUsuario nuevoEstado) {
         String sql = "UPDATE Usuario SET Estado = ? WHERE Login = ?";
 
@@ -107,7 +98,6 @@ public class UsuarioRepository implements IUsuarioRepository {
         return false;
     }
 
-    @Override
     public List<Usuario> list() {
         List<Usuario> usuarios = new ArrayList<>();
         String sql = "SELECT Id, Login, NombreCompleto, Rol, Estado, PasswordHash FROM Usuario";
@@ -136,7 +126,7 @@ public class UsuarioRepository implements IUsuarioRepository {
 
     private void initDatabase() {
         String sql = "CREATE TABLE IF NOT EXISTS Usuario (\n"
-                + "    Id SERIAL PRIMARY KEY,\n"
+                + "    Id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
                 + "    Login TEXT NOT NULL UNIQUE,\n"
                 + "    NombreCompleto TEXT NOT NULL,\n"
                 + "    Rol TEXT NOT NULL,\n"

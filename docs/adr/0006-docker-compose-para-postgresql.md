@@ -1,6 +1,11 @@
 # 0006 — Docker Compose para levantar PostgreSQL
 
-**Estado:** Aceptado
+**Estado:** Reemplazado por [0007](0007-sqlite-y-eliminacion-de-docker.md)
+
+> Se revirtió esta decisión junto con [0002](0002-postgresql-en-vez-de-sqlite.md): al volver a SQLite
+> no hay ningún servidor que levantar, así que Docker Compose se eliminó del proyecto por completo. El
+> contenido de abajo (incluyendo los problemas reales que causó WSL2 apagando el contenedor) se
+> conserva como registro histórico.
 
 ## Contexto
 

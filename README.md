@@ -19,82 +19,64 @@ las Pruebas Saber Pro*. Aplica los principios SOLID para lograr un diseño legib
 
 Cada usuario tiene: nombre de usuario (login), nombre completo, rol, estado (Activo/Inactivo) y contraseña.
 
-## Estado actual
-
-El **esqueleto completo del proyecto ya existe y está conectado** (todas las clases, con sus
-constructores e inyección de dependencias armados), pero la lógica de negocio dentro de cada método
-está marcada con `// TODO` y todavía hay que implementarla: validación de contraseñas, cifrado,
-registro, autenticación y menús por rol. La UI (login, registro, dashboard) ya recibe los servicios
-por constructor, pero los botones aún no hacen nada. Ideal para dividir el trabajo en pareja: cada
-quien puede tomar un paquete y llenar los `TODO` sin tener que tocar el resto de la conexión.
-
 ## Arquitectura
 
-Modelo-Vista-Controlador clásico. Dentro de `controller`, el acceso a datos sigue el patrón del
-**ejemplo 5 (Principio de Inversión de Dependencias)** visto en la teoría: los controladores dependen
-de una interfaz de repositorio (`IUsuarioRepository`), no de la implementación concreta, y una fábrica
-(`Factory`) se encarga de instanciarla.
+Modelo-Vista-Controlador clásico, sin capas de abstracción extra: cada clase tiene una
+responsabilidad clara, pero se llaman directamente entre sí (ver [ADR 0009](docs/adr/0009-simplificar-a-mvc-plano.md)
+sobre por qué se dejó así en vez de con interfaces/factories).
 
 ```
 src/main/java/bancopreguntas/
   model/
     Usuario.java, Rol.java, EstadoUsuario.java   # entidad y enums
-    exception/                    # excepciones de dominio — completas, no requieren TODO
   conexion/
-    IUsuarioRepository.java       # contrato (abstracción)
-    UsuarioRepository.java        # implementación concreta (PostgreSQL) — ya funciona
-    Factory.java                  # fábrica que instancia el repositorio — ya funciona
+    UsuarioRepository.java        # acceso a datos (SQLite)
   controller/
-    UsuarioController.java        # registro de usuarios — TODO
-    AuthController.java           # autenticación — TODO
-    security/
-      IPasswordEncoder.java, Sha256PasswordEncoder.java   # cifrado de contraseñas — TODO
-    validation/
-      IPasswordRule.java, PasswordValidator.java, rules/  # política de contraseñas — TODO
-    menu/
-      IMenuRol.java, Menu*.java, MenuFactory.java          # menú según el rol — TODO (opciones)
+    UsuarioController.java        # registro de usuarios, validación de contraseña, listado
+    AuthController.java           # autenticación (login)
+    PasswordUtil.java             # cifrado y verificación de contraseñas (SHA-256 + sal)
   view/
-    MainApp.java                  # arranque JavaFX (composition root): arma toda la conexión — ya funciona
+    MainApp.java                  # arranque JavaFX: crea el repositorio y los controllers
     Launcher.java                 # punto de entrada real (ver SETUP.md)
-    LoginView.java, RegistroUsuarioView.java, DashboardView.java   # reciben los controllers, botones sin conectar — TODO
+    LoginView.java, RegistroUsuarioView.java, DashboardView.java
 
 src/test/java/bancopreguntas/
   conexion/
-    UsuarioRepositoryTest.java    # prueba de la capa de conexión (PostgreSQL desechable de prueba)
+    UsuarioRepositoryTest.java    # prueba de la capa de conexión (SQLite en memoria)
+  controller/
+    AuthFlowTest.java             # registro y login (HU-05, HU-06)
+
+lib/                             # dependencias como .jar (sin gestor de build, ver ADR 0008)
+.vscode/settings.json            # le dice a VS Code dónde están los .jar de lib/
 ```
 
 ## Stack tecnológico
 
-- Java
+- Java (sin Maven/Gradle — dependencias como `.jar` en `lib/`, ver [ADR 0008](docs/adr/0008-eliminar-maven.md))
 - JavaFX (interfaz gráfica)
-- Maven (gestión de dependencias y build)
-- PostgreSQL (persistencia)
+- SQLite (persistencia, archivo `banco_preguntas.db`)
 
 ## Cómo compilar y ejecutar
 
-Guía completa (requisitos, extensiones de VS Code, cómo correr y solución del error típico de
-JavaFX) en **[SETUP.md](SETUP.md)**.
-
-Resumen rápido:
-
-```bash
-mvn clean compile
-```
+Guía completa (requisitos, extensiones de VS Code, cómo correr y cómo agregar una librería nueva) en
+**[SETUP.md](SETUP.md)**.
 
 **El archivo que se ejecuta (al que le das ▶ Run en VS Code) es:**
-`src/main/java/bancopreguntas/view/Launcher.java` — **no** `MainApp.java` (ver por qué en [SETUP.md](SETUP.md#4-ejecutar-la-aplicación)).
+`src/main/java/bancopreguntas/view/Launcher.java` — **no** `MainApp.java` (ver por qué en [SETUP.md](SETUP.md#2-ejecutar-la-aplicación)).
 
 ## Decisiones de arquitectura (ADR)
 
-El porqué de cada elección tecnológica (Java+JavaFX, PostgreSQL en vez de SQLite, la estructura MVC
-por capas, Maven, pruebas con PostgreSQL embebido) está documentado en **[docs/adr/](docs/adr/)** —
-útil para responder preguntas del docente en la sustentación.
+El porqué de cada elección tecnológica (Java+JavaFX, SQLite, la estructura MVC por capas, sin Maven,
+pruebas con SQLite en memoria) está documentado en **[docs/adr/](docs/adr/)** — útil para responder
+preguntas del docente en la sustentación.
 
 ## Reglas de negocio
 
-Qué debe hacer exactamente cada `// TODO` (registro, política de contraseñas, autenticación,
-cifrado, cambio de estado) está detallado en **[docs/REGLAS_NEGOCIO.md](docs/REGLAS_NEGOCIO.md)** —
-léanlo antes de repartirse los TODO para que ambos implementen el mismo comportamiento.
+- La contraseña debe tener mínimo 6 caracteres, un dígito, una mayúscula y un carácter especial.
+- No se puede registrar dos veces el mismo login.
+- Un usuario en estado `INACTIVO` no puede iniciar sesión, aunque la contraseña sea correcta.
+- La contraseña nunca se guarda en texto plano: se cifra con SHA-256 + una sal aleatoria por usuario
+  (ver `PasswordUtil`).
 
 ## Épicas e historias de usuario
 
@@ -108,15 +90,16 @@ Antes de ponerse a picar código, lean **[RAMAS.md](RAMAS.md)** — explica cóm
 los dos trabajen en paralelo sin pisarse (una rama por TODO/paquete, Pull Request hacia `main`,
 nunca commitear directo a `main`).
 
-## Principios SOLID aplicados
+## Sobre los principios SOLID
 
-| Principio | Dónde se aplica |
-|---|---|
-| SRP (Responsabilidad única) | *(completar durante el desarrollo)* |
-| OCP (Abierto/cerrado) | *(completar durante el desarrollo)* |
-| LSP (Sustitución de Liskov) | *(completar durante el desarrollo)* |
-| ISP (Segregación de interfaces) | *(completar durante el desarrollo)* |
-| DIP (Inversión de dependencias) | Los controllers dependen de `IUsuarioRepository`, no de `UsuarioRepository`; `Factory` desacopla la creación de la implementación concreta. |
+La idea original era aplicar los cinco principios con interfaces, una fábrica para el repositorio y un
+Strategy para las reglas de contraseña, siguiendo el ejemplo de Inversión de Dependencias visto en
+teoría. Al implementarlo nos dimos cuenta de que esa cantidad de capas era más difícil de sostener y de
+explicar en la sustentación que el beneficio real que aportaba para el alcance de este taller, así que
+la simplificamos. Nos quedamos con lo esencial: separar el modelo, la vista, el controlador y el acceso
+a datos en clases distintas (SRP), y dejar la validación de contraseña y el cifrado en sus propios
+métodos/clase (`PasswordUtil`) en vez de mezclarlos con la lógica de registro. El detalle de esta
+decisión está en [ADR 0009](docs/adr/0009-simplificar-a-mvc-plano.md).
 
 ## Integrantes
 

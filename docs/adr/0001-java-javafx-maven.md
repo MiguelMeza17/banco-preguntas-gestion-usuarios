@@ -1,6 +1,10 @@
 # 0001 — Java + JavaFX puro (sin FXML) + Maven
 
-**Estado:** Aceptado
+**Estado:** Aceptado parcialmente — la parte de Maven fue reemplazada por [0008](0008-eliminar-maven.md)
+
+> La parte de "JavaFX puro sin FXML" sigue vigente. La parte de "gestionado con Maven" ya no aplica:
+> el proyecto dejó de usar Maven, ver [ADR 0008](0008-eliminar-maven.md). El `Launcher` sin herencia de
+> `Application` mencionado abajo se conservó — es justo lo que permite correrlo sin Maven ni módulo.
 
 ## Contexto
 

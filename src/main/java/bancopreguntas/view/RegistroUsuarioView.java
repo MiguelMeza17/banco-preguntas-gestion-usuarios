@@ -3,8 +3,6 @@ package bancopreguntas.view;
 import bancopreguntas.model.Rol;
 import bancopreguntas.controller.AuthController;
 import bancopreguntas.controller.UsuarioController;
-import bancopreguntas.model.exception.PasswordInvalidaException;
-import bancopreguntas.model.exception.UsuarioYaExisteException;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -19,8 +17,7 @@ import javafx.stage.Stage;
 
 /**
  * Formulario de registro de usuarios. Delega en {@link UsuarioController}
- * y muestra en pantalla los errores de {@link PasswordInvalidaException}
- * (todos, no solo el primero) o de {@link UsuarioYaExisteException}.
+ * y muestra en pantalla el mensaje de error si el registro falla.
  */
 public class RegistroUsuarioView {
 
@@ -69,15 +66,9 @@ public class RegistroUsuarioView {
                         rolSeleccionado, campoPassword.getText());
                 labelMensaje.setStyle("-fx-text-fill: green;");
                 labelMensaje.setText("Usuario registrado correctamente. Ya puedes iniciar sesión.");
-            } catch (PasswordInvalidaException ex) {
-                labelMensaje.setStyle("-fx-text-fill: red;");
-                labelMensaje.setText(String.join("\n", ex.getErrores()));
-            } catch (UsuarioYaExisteException ex) {
+            } catch (Exception ex) {
                 labelMensaje.setStyle("-fx-text-fill: red;");
                 labelMensaje.setText(ex.getMessage());
-            } catch (IllegalStateException ex) {
-                labelMensaje.setStyle("-fx-text-fill: red;");
-                labelMensaje.setText("No se pudo guardar el usuario. Verifica la conexión a la base de datos e intenta de nuevo.");
             }
         });
 

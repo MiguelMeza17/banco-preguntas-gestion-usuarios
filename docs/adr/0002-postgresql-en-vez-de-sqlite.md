@@ -1,6 +1,9 @@
 # 0002 — PostgreSQL en vez de SQLite
 
-**Estado:** Aceptado
+**Estado:** Reemplazado por [0007](0007-sqlite-y-eliminacion-de-docker.md)
+
+> Se revirtió esta decisión: el proyecto volvió a SQLite. El contenido de abajo se conserva como
+> registro histórico de por qué se eligió PostgreSQL en su momento.
 
 ## Contexto
 

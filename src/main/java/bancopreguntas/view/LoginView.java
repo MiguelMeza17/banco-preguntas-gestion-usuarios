@@ -3,7 +3,6 @@ package bancopreguntas.view;
 import bancopreguntas.controller.AuthController;
 import bancopreguntas.controller.UsuarioController;
 import bancopreguntas.model.Usuario;
-import bancopreguntas.model.exception.CredencialesInvalidasException;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -55,7 +54,7 @@ public class LoginView {
                 labelError.setText("");
                 DashboardView dashboardView = new DashboardView(stage, usuario, authService, usuarioService);
                 stage.setScene(dashboardView.getScene());
-            } catch (CredencialesInvalidasException ex) {
+            } catch (Exception ex) {
                 labelError.setText(ex.getMessage());
             }
         });

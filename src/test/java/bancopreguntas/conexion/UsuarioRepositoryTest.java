@@ -3,36 +3,20 @@ package bancopreguntas.conexion;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
 import java.sql.Connection;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import org.junit.jupiter.api.Test;
 
 /**
- * Prueba de la capa de conexión: usa un PostgreSQL real pero desechable
- * (embedded-postgres) para no depender de tener un servidor instalado
- * solo para correr las pruebas.
+ * Prueba de la capa de conexión: usa SQLite en memoria para no tocar
+ * el archivo banco_preguntas.db real.
  */
 class UsuarioRepositoryTest {
 
-    private static EmbeddedPostgres postgres;
-    private static Connection conn;
-
-    @BeforeAll
-    static void iniciarPostgres() throws Exception {
-        postgres = EmbeddedPostgres.start();
-        conn = postgres.getPostgresDatabase().getConnection();
-    }
-
-    @AfterAll
-    static void detenerPostgres() throws Exception {
-        conn.close();
-        postgres.close();
-    }
-
     @Test
-    void seConectaYCreaLaTablaUsuario() throws Exception {
+    void seConectaYCreaLaTablaUsuario() throws SQLException {
+        Connection conn = DriverManager.getConnection("jdbc:sqlite::memory:");
         UsuarioRepository repository = new UsuarioRepository(conn);
 
         assertNotNull(repository);

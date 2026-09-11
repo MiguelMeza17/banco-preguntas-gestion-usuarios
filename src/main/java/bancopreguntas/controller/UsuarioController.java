@@ -1,48 +1,39 @@
 package bancopreguntas.controller;
 
+import bancopreguntas.conexion.UsuarioRepository;
 import bancopreguntas.model.EstadoUsuario;
 import bancopreguntas.model.Rol;
 import bancopreguntas.model.Usuario;
-import bancopreguntas.conexion.IUsuarioRepository;
-import bancopreguntas.model.exception.PasswordInvalidaException;
-import bancopreguntas.model.exception.UsuarioYaExisteException;
-import bancopreguntas.controller.security.IPasswordEncoder;
-import bancopreguntas.controller.validation.PasswordValidator;
 import java.util.List;
 
 /**
- * Lógica de negocio de gestión de usuarios. Depende solo de abstracciones
- * (IUsuarioRepository, IPasswordEncoder, PasswordValidator) inyectadas por
- * constructor (DIP).
+ * Lógica de negocio de gestión de usuarios.
  */
 public class UsuarioController {
 
-    private final IUsuarioRepository repository;
-    private final IPasswordEncoder passwordEncoder;
-    private final PasswordValidator passwordValidator;
+    private static final int LONGITUD_MINIMA_PASSWORD = 6;
 
-    public UsuarioController(IUsuarioRepository repository, IPasswordEncoder passwordEncoder,
-                           PasswordValidator passwordValidator) {
+    private final UsuarioRepository repository;
+
+    public UsuarioController(UsuarioRepository repository) {
         this.repository = repository;
-        this.passwordEncoder = passwordEncoder;
-        this.passwordValidator = passwordValidator;
     }
 
     public Usuario registrarUsuario(String login, String nombreCompleto, Rol rol, String passwordPlano)
-            throws PasswordInvalidaException, UsuarioYaExisteException {
-        List<String> errores = passwordValidator.obtenerErrores(passwordPlano);
-        if (!errores.isEmpty()) {
-            throw new PasswordInvalidaException(errores);
+            throws Exception {
+        String errorPassword = validarPassword(passwordPlano);
+        if (errorPassword != null) {
+            throw new Exception(errorPassword);
         }
 
         if (repository.existsByLogin(login)) {
-            throw new UsuarioYaExisteException(login);
+            throw new Exception("Ya existe un usuario registrado con el login: " + login);
         }
 
-        String passwordHash = passwordEncoder.encode(passwordPlano);
+        String passwordHash = PasswordUtil.encode(passwordPlano);
         Usuario usuario = new Usuario(0, login, nombreCompleto, rol, EstadoUsuario.ACTIVO, passwordHash);
         if (!repository.save(usuario)) {
-            throw new IllegalStateException("No fue posible guardar el usuario en la base de datos.");
+            throw new Exception("No fue posible guardar el usuario en la base de datos.");
         }
         return usuario;
     }
@@ -53,5 +44,21 @@ public class UsuarioController {
 
     public boolean cambiarEstado(String login, EstadoUsuario nuevoEstado) {
         return repository.updateEstado(login, nuevoEstado);
+    }
+
+    private String validarPassword(String password) {
+        if (password == null || password.length() < LONGITUD_MINIMA_PASSWORD) {
+            return "La contraseña debe tener al menos " + LONGITUD_MINIMA_PASSWORD + " caracteres.";
+        }
+        if (password.chars().noneMatch(Character::isDigit)) {
+            return "La contraseña debe incluir al menos un dígito.";
+        }
+        if (password.chars().noneMatch(Character::isUpperCase)) {
+            return "La contraseña debe incluir al menos una letra mayúscula.";
+        }
+        if (password.chars().allMatch(Character::isLetterOrDigit)) {
+            return "La contraseña debe incluir al menos un carácter especial.";
+        }
+        return null;
     }
 }

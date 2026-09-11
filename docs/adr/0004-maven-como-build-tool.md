@@ -1,12 +1,16 @@
 # 0004 — Maven como gestor de dependencias y build
 
-**Estado:** Aceptado
+**Estado:** Reemplazado por [0008](0008-eliminar-maven.md)
+
+> Se revirtió esta decisión: el proyecto dejó de usar Maven (ni ningún otro gestor de build) y pasó a
+> gestionar los `.jar` a mano en `lib/`. El contenido de abajo se conserva como registro histórico de
+> por qué se eligió Maven en su momento.
 
 ## Contexto
 
-El proyecto necesita gestionar dependencias externas (JavaFX, driver JDBC de PostgreSQL, JUnit,
-PostgreSQL embebido para pruebas) y un proceso de compilación/ejecución reproducible entre los dos
-integrantes, que probablemente usan configuraciones de máquina distintas.
+El proyecto necesita gestionar dependencias externas (JavaFX, driver JDBC de SQLite, JUnit) y un
+proceso de compilación/ejecución reproducible entre los dos integrantes, que probablemente usan
+configuraciones de máquina distintas.
 
 ## Decisión
 

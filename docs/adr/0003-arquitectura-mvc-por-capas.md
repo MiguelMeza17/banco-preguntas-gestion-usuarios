@@ -1,6 +1,8 @@
 # 0003 — Arquitectura MVC por capas (model/conexion/controller/view)
 
-**Estado:** Aceptado
+**Estado:** Parcial — la división en capas (`model`/`conexion`/`controller`/`view`) sigue vigente, pero
+las interfaces, la fábrica y los sub-paquetes `security`/`validation`/`menu` que se describen abajo se
+eliminaron después. Ver [ADR 0009](0009-simplificar-a-mvc-plano.md).
 
 ## Contexto
 

@@ -1,6 +1,10 @@
 # 0005 — Pruebas con PostgreSQL embebido (embedded-postgres)
 
-**Estado:** Aceptado
+**Estado:** Reemplazado por [0007](0007-sqlite-y-eliminacion-de-docker.md)
+
+> Se revirtió esta decisión junto con [0002](0002-postgresql-en-vez-de-sqlite.md): al volver a SQLite,
+> las pruebas usan `jdbc:sqlite::memory:` directamente, sin ninguna librería adicional. El contenido de
+> abajo se conserva como registro histórico.
 
 ## Contexto
 

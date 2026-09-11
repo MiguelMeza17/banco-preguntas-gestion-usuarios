@@ -11,9 +11,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 /**
- * Tablero mostrado tras un login exitoso. Ya recibe el Usuario autenticado
- * y las dependencias necesarias; falta usar MenuFactory.obtenerMenu(usuario.getRol())
- * para pintar las opciones según el rol.
+ * Tablero mostrado tras un login exitoso.
  */
 public class DashboardView {
 
@@ -31,12 +29,10 @@ public class DashboardView {
     }
 
     public Scene getScene() {
-        Label bienvenida = new Label("Bienvenido");
+        Label bienvenida = new Label("Bienvenido, " + usuario.getNombreCompleto());
+        Label rol = new Label("Rol: " + usuario.getRol().getNombreVisible());
 
-        // TODO: usar MenuFactory.obtenerMenu(usuario.getRol()) para mostrar el
-        //       nombre del rol y agregar un botón por cada opción del menú.
-
-        VBox contenedor = new VBox(12, bienvenida);
+        VBox contenedor = new VBox(12, bienvenida, rol);
         contenedor.setPadding(new Insets(24));
         contenedor.setAlignment(Pos.CENTER_LEFT);
 

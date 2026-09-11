@@ -5,8 +5,9 @@ HE-01/HE-02) cubren el módulo de **Banco de Preguntas** (crear preguntas, flujo
 Ninguna cubre el módulo de **Gestión de usuarios**, que es el alcance de este repositorio. Estas
 son las épicas e historias correspondientes a lo que sí se implementa aquí, con el mismo formato
 de la plantilla del curso (HE ID/Título/Descripción, HU Rol/Funcionalidad/Razón + criterios de
-aceptación Contexto-Evento-Resultado). Están alineadas 1 a 1 con `docs/REGLAS_NEGOCIO.md` — cada
-criterio de aceptación corresponde a una rama de lógica que hay que implementar en un `// TODO`.
+aceptación Contexto-Evento-Resultado). Las reglas de negocio que mencionan los criterios de
+aceptación (política de contraseña, unicidad del login, etc.) están resumidas en el
+[README](../README.md#reglas-de-negocio).
 
 ## 1. Historias épicas
 
@@ -25,14 +26,14 @@ criterio de aceptación corresponde a una rama de lógica que hay que implementa
 login, nombre completo, rol y contraseña, para poder acceder a las funcionalidades de mi rol.
 
 **Contexto adicional:** El login es único en todo el sistema. La contraseña debe cumplir la
-política de seguridad (mínimo 6 caracteres, un dígito, una mayúscula y un carácter especial —
-ver `docs/REGLAS_NEGOCIO.md` §3). Todo usuario nace en estado Activo.
+política de seguridad (mínimo 6 caracteres, un dígito, una mayúscula y un carácter especial).
+Todo usuario nace en estado Activo.
 
 | # | Criterio de aceptación | Contexto | Evento | Resultado esperado |
 |---|---|---|---|---|
 | 1 | Registro exitoso | Login no existe, contraseña cumple la política, todos los campos diligenciados. | El usuario hace clic en "Registrar". | El sistema crea el usuario en estado Activo, cifra la contraseña y muestra un mensaje de confirmación. |
 | 2 | Login duplicado | Ya existe un usuario registrado con ese login. | El usuario hace clic en "Registrar". | El sistema muestra "Ya existe un usuario registrado con el login: {login}" y no crea el usuario. |
-| 3 | Contraseña insegura | La contraseña incumple una o más reglas de la política. | El usuario hace clic en "Registrar". | El sistema muestra la lista completa de reglas incumplidas y no crea el usuario. |
+| 3 | Contraseña insegura | La contraseña incumple una o más reglas de la política. | El usuario hace clic en "Registrar". | El sistema muestra la primera regla incumplida (por ejemplo, "La contraseña debe incluir al menos un dígito.") y no crea el usuario. |
 
 **Prototipo de interfaz:** ya implementado en `RegistroUsuarioView.java` (login, nombre completo,
 combo de rol, contraseña, botón "Registrar", enlace "Volver a iniciar sesión").
@@ -40,14 +41,15 @@ combo de rol, contraseña, botón "Registrar", enlace "Volver a iniciar sesión"
 ### HU-06 (HE-03) — Yo como usuario registrado
 
 **Enunciado:** Yo como usuario registrado necesito iniciar sesión con mi login y contraseña,
-para acceder al tablero de opciones correspondiente a mi rol.
+para acceder al sistema con mi cuenta.
 
 **Contexto adicional:** Un usuario en estado Inactivo no puede iniciar sesión aunque su
-contraseña sea correcta.
+contraseña sea correcta. El Dashboard muestra el nombre y el rol del usuario autenticado; no
+distingue opciones por rol (eso queda fuera del alcance de este módulo).
 
 | # | Criterio de aceptación | Contexto | Evento | Resultado esperado |
 |---|---|---|---|---|
-| 1 | Inicio de sesión exitoso | El login existe, la contraseña coincide y el usuario está Activo. | El usuario hace clic en "Iniciar sesión". | El sistema abre el Dashboard con las opciones del rol del usuario. |
+| 1 | Inicio de sesión exitoso | El login existe, la contraseña coincide y el usuario está Activo. | El usuario hace clic en "Iniciar sesión". | El sistema abre el Dashboard mostrando el nombre y el rol del usuario. |
 | 2 | Credenciales incorrectas | El login no existe, o el login existe pero la contraseña no coincide. | El usuario hace clic en "Iniciar sesión". | El sistema muestra un único mensaje de error genérico, sin indicar cuál de los dos datos falló. |
 | 3 | Usuario inactivo | El login y la contraseña son correctos, pero el usuario está Inactivo. | El usuario hace clic en "Iniciar sesión". | El sistema rechaza el inicio de sesión. |
 
@@ -59,9 +61,9 @@ contraseña sea correcta.
 **Enunciado:** Yo como Administrador necesito ver el listado de todos los usuarios registrados,
 para conocer quiénes tienen acceso al sistema y en qué rol.
 
-**Contexto adicional:** El código actual (`UsuarioController.listarUsuarios`) no restringe esta
-consulta a un rol específico — la restricción por rol queda pendiente de definir junto con
-`MenuFactory`/`MenuAdministrador` (ver "Fuera de alcance" en `docs/REGLAS_NEGOCIO.md`).
+**Contexto adicional:** `UsuarioController.listarUsuarios()` devuelve todos los usuarios sin filtrar
+por rol — restringir esta consulta solo al Administrador (por ejemplo, con una pantalla de gestión
+separada del login) queda fuera del alcance de este taller.
 
 | # | Criterio de aceptación | Contexto | Evento | Resultado esperado |
 |---|---|---|---|---|
@@ -81,9 +83,11 @@ revocar o restaurar su acceso al sistema sin eliminar su registro.
 
 ## 3. Trazabilidad con el código
 
-| Historia | Método a implementar |
+| Historia | Dónde está implementada |
 |---|---|
-| HU-05 | `UsuarioController.registrarUsuario(...)` + `PasswordValidator` + `Sha256PasswordEncoder.encode` |
-| HU-06 | `AuthController.autenticar(...)` + `Sha256PasswordEncoder.matches` |
-| HU-07 | `UsuarioController.listarUsuarios()` (ya implementado) |
-| HU-08 | `UsuarioController.cambiarEstado(...)` (ya implementado) |
+| HU-05 | `UsuarioController.registrarUsuario(...)` (valida la contraseña y cifra con `PasswordUtil.encode`) |
+| HU-06 | `AuthController.autenticar(...)` (verifica con `PasswordUtil.matches`) |
+| HU-07 | `UsuarioController.listarUsuarios()` |
+| HU-08 | `UsuarioController.cambiarEstado(...)` |
+
+Los cuatro métodos están cubiertos por `AuthFlowTest` (`src/test/java/bancopreguntas/controller/`).

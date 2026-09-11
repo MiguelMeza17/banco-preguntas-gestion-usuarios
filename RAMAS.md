@@ -13,17 +13,14 @@ corra — es lo que vas a mostrar en la sustentación. Todo cambio nuevo va prim
 - **`feature/<algo-corto>`** — una rama por tarea/TODO que estés implementando. Vive poco tiempo:
   se crea, se trabaja, se sube, se fusiona a `main` y se borra.
 
-Como el proyecto ya está dividido en `TODO` por paquete (`controller/validation`,
-`controller/security`, `controller/UsuarioController`, `controller/AuthController`,
-`controller/menu`, `view/*`), cada uno puede tomar un paquete y trabajar en su propia rama sin
-tocar los archivos del otro. Ejemplos de nombres:
+El proyecto está organizado por capas (`model`, `conexion`, `controller`, `view`), así que cada uno
+puede tomar una capa o una vista y trabajar en su propia rama sin tocar los archivos del otro.
+Ejemplos de nombres:
 
-- `feature/validacion-password`
-- `feature/cifrado-password`
 - `feature/registro-usuario` (`UsuarioController`)
 - `feature/autenticacion` (`AuthController`)
-- `feature/menus-por-rol`
 - `feature/conectar-login-view`
+- `feature/pruebas-auth-flow`
 
 ## Flujo paso a paso
 
@@ -35,18 +32,18 @@ tocar los archivos del otro. Ejemplos de nombres:
 
 2. **Crea tu rama** desde ese `main` actualizado:
    ```bash
-   git checkout -b feature/validacion-password
+   git checkout -b feature/registro-usuario
    ```
 
 3. **Trabaja y haz commits pequeños y descriptivos** (mejor varios commits chicos que uno gigante):
    ```bash
-   git add src/main/java/bancopreguntas/controller/validation/PasswordValidator.java
-   git commit -m "Implementar PasswordValidator.esValida y obtenerErrores"
+   git add src/main/java/bancopreguntas/controller/UsuarioController.java
+   git commit -m "Validar la contraseña antes de registrar el usuario"
    ```
 
 4. **Sube tu rama** a GitHub:
    ```bash
-   git push -u origin feature/validacion-password
+   git push -u origin feature/registro-usuario
    ```
 
 5. **Abre un Pull Request** en GitHub: de tu rama hacia `main`. En la descripción escribe qué
@@ -79,5 +76,5 @@ git push
 
 ## Antes de la sustentación
 
-Revisen juntos que `main` tenga todo fusionado, compile (`mvn compile`) y corra
+Revisen juntos que `main` tenga todo fusionado, compile sin errores en VS Code y corra
 (`Launcher.java`) — es lo que van a mostrar al docente.

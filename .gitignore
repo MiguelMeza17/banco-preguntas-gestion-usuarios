@@ -1,13 +1,8 @@
-# Maven
-target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-dependency-reduced-pom.xml
-buildNumber.properties
-.mvn/timing.properties
+# Base de datos SQLite local
+*.db
+
+# Salida de compilación (sin Maven: la genera el Language Support for Java de VS Code)
+bin/
 
 # Compiled class files
 *.class
@@ -15,7 +10,11 @@ buildNumber.properties
 # IDEs
 .idea/
 *.iml
-.vscode/
+# .vscode/ se ignora completo excepto settings.json: ahí vive la configuración de
+# classpath manual (java.project.referencedLibraries) que reemplaza al pom.xml —
+# sin ese archivo el proyecto no compila al abrirlo en una máquina nueva.
+.vscode/*
+!.vscode/settings.json
 nb-configuration.xml
 nbproject/private/
 .settings/
